@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+# Fichiers de dev locaux (credentials, tests manuels)
+inst/dev/test_pascan.R
+inst/dev/
+.Renviron

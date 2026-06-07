@@ -1,0 +1,25 @@
+Package: mbhlcore
+Type: Package
+Title: MBHL Core — Database Infrastructure and Shared Utilities
+Version: 0.1.0
+Authors@R: person(
+    "Hugo", "Lepage",
+    role = c("aut", "cre"),
+    email = "hugo_lep@hotmail.com"
+  )
+Description: Core infrastructure for the MBHL maintenance platform (AvnumbeRs).
+    Provides PostgreSQL connectivity, versioned database migrations, shared entity
+    definitions (aircraft, bases, personnel, companies, currencies), and permission
+    management utilities shared by mbhlMaintenance, mbhlMagasin, and mbhlComptable.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+    cli,
+    DBI,
+    glue,
+    rlang,
+    s3db (>= 0.1.0)
+Config/roxygen2/version: 8.0.0
+Remotes:  
+    hugo-lep/s3db
