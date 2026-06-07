@@ -21,6 +21,12 @@ run_pending_migrations <- function(con, package = "mbhlcore") {
     .bootstrap_schema(con, schema = package)
 
     migration_dir <- system.file("migrations", package = package)
+    if (!nzchar(migration_dir)) {
+        cli::cli_abort(c(
+            "Impossible de trouver les migrations du package {.pkg {package}}.",
+            "i" = "Le package est-il installé ? Lance {.code renv::install()} si nécessaire."
+        ))
+    }
     sql_files     <- sort(list.files(migration_dir, pattern = "\\.sql$", full.names = TRUE))
     bare_ids      <- tools::file_path_sans_ext(basename(sql_files))
     migration_ids <- paste0(package, "_", bare_ids)
@@ -88,6 +94,12 @@ run_pending_migrations <- function(con, package = "mbhlcore") {
 #' @export
 list_migrations <- function(con, package = "mbhlcore") {
     migration_dir <- system.file("migrations", package = package)
+    if (!nzchar(migration_dir)) {
+        cli::cli_abort(c(
+            "Impossible de trouver les migrations du package {.pkg {package}}.",
+            "i" = "Le package est-il installé ? Lance {.code renv::install()} si nécessaire."
+        ))
+    }
     sql_files     <- sort(list.files(migration_dir, pattern = "\\.sql$"))
     bare_ids      <- tools::file_path_sans_ext(sql_files)
     migration_ids <- paste0(package, "_", bare_ids)
