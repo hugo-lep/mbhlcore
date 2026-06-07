@@ -4,17 +4,26 @@
 \alias{run_pending_migrations}
 \title{Apply all pending database migrations}
 \usage{
-run_pending_migrations(con)
+run_pending_migrations(con, package = "mbhlcore")
 }
 \arguments{
 \item{con}{A DBI connection or pool object pointing to the client database.}
+
+\item{package}{Name of the package whose \verb{inst/migrations/} to apply.
+Defaults to \code{"mbhlcore"}. Other MBHL packages pass their own name here.}
 }
 \value{
 Invisibly returns the number of migrations applied.
 }
 \description{
-Reads SQL files from \verb{inst/migrations/}, compares with the migrations
-already applied in \code{mbhlcore.schema_migrations}, and applies any pending
-migrations in alphabetical order. Safe to call multiple times — already
-applied migrations are skipped.
+Reads SQL files from the \verb{inst/migrations/} folder of the given package,
+compares with migrations already recorded in \code{mbhlcore.schema_migrations},
+and applies any pending migrations in alphabetical order. Safe to call
+multiple times — already applied migrations are skipped.
+}
+\details{
+Each migration is recorded with a prefixed ID: \verb{\{package\}_\{filename\}},
+e.g. \code{mbhlcore_0001_aircraft} or \code{mbhlmaintenance_0001_work_orders}.
+This prevents collisions when multiple packages share the same
+\code{schema_migrations} table.
 }

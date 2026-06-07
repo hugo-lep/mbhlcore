@@ -19,4 +19,3 @@ mbhl_check_setup(con)        # → Confirme que tout est en ordre
 
 mbhl_client_info(con)        # résumé de l'état
 
-mbhl_disconnect(con)

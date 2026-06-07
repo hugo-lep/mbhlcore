@@ -1,21 +1,29 @@
 #' Apply all pending database migrations
 #'
-#' Reads SQL files from `inst/migrations/`, compares with the migrations
-#' already applied in `mbhlcore.schema_migrations`, and applies any pending
-#' migrations in alphabetical order. Safe to call multiple times — already
-#' applied migrations are skipped.
+#' Reads SQL files from the `inst/migrations/` folder of the given package,
+#' compares with migrations already recorded in `mbhlcore.schema_migrations`,
+#' and applies any pending migrations in alphabetical order. Safe to call
+#' multiple times — already applied migrations are skipped.
 #'
-#' @param con A DBI connection or pool object pointing to the client database.
+#' Each migration is recorded with a prefixed ID: `{package}_{filename}`,
+#' e.g. `mbhlcore_0001_aircraft` or `mbhlmaintenance_0001_work_orders`.
+#' This prevents collisions when multiple packages share the same
+#' `schema_migrations` table.
+#'
+#' @param con     A DBI connection or pool object pointing to the client database.
+#' @param package Name of the package whose `inst/migrations/` to apply.
+#'   Defaults to `"mbhlcore"`. Other MBHL packages pass their own name here.
 #'
 #' @return Invisibly returns the number of migrations applied.
 #' @importFrom tools file_path_sans_ext
 #' @export
-run_pending_migrations <- function(con) {
-    .bootstrap_schema(con)
+run_pending_migrations <- function(con, package = "mbhlcore") {
+    .bootstrap_schema(con, schema = package)
 
-    migration_dir <- system.file("migrations", package = "mbhlcore")
+    migration_dir <- system.file("migrations", package = package)
     sql_files     <- sort(list.files(migration_dir, pattern = "\\.sql$", full.names = TRUE))
-    migration_ids <- tools::file_path_sans_ext(basename(sql_files))
+    bare_ids      <- tools::file_path_sans_ext(basename(sql_files))
+    migration_ids <- paste0(package, "_", bare_ids)
 
     applied <- DBI::dbGetQuery(
         con,
@@ -68,15 +76,18 @@ run_pending_migrations <- function(con) {
 
 #' List all migrations and their status
 #'
-#' @param con A DBI connection or pool object.
+#' @param con     A DBI connection or pool object.
+#' @param package Name of the package whose `inst/migrations/` to inspect.
+#'   Defaults to `"mbhlcore"`.
 #'
 #' @return A data.frame with columns `migration_id`, `status` ("applied" or
 #'   "pending"), and `applied_at` (NA if pending).
 #' @export
-list_migrations <- function(con) {
-    migration_dir <- system.file("migrations", package = "mbhlcore")
+list_migrations <- function(con, package = "mbhlcore") {
+    migration_dir <- system.file("migrations", package = package)
     sql_files     <- sort(list.files(migration_dir, pattern = "\\.sql$"))
-    migration_ids <- tools::file_path_sans_ext(sql_files)
+    bare_ids      <- tools::file_path_sans_ext(sql_files)
+    migration_ids <- paste0(package, "_", bare_ids)
 
     applied <- tryCatch(
         DBI::dbGetQuery(
@@ -102,17 +113,19 @@ list_migrations <- function(con) {
 
 #' Display migration status in the console
 #'
-#' @param con A DBI connection or pool object.
+#' @param con     A DBI connection or pool object.
+#' @param package Name of the package whose migrations to display.
+#'   Defaults to `"mbhlcore"`.
 #'
 #' @return Invisibly returns the data.frame from [list_migrations()].
 #' @export
-migration_status <- function(con) {
-    df <- list_migrations(con)
+migration_status <- function(con, package = "mbhlcore") {
+    df <- list_migrations(con, package = package)
 
     n_applied <- sum(df$status == "applied")
     n_pending <- sum(df$status == "pending")
 
-    cli::cli_h1("mbhlcore — Migration status")
+    cli::cli_h1("{package} — Migration status")
     cli::cli_inform(c(
         "v" = "{n_applied} applied",
         "!" = "{n_pending} pending"
@@ -133,10 +146,14 @@ migration_status <- function(con) {
 }
 
 
-# Crée le schema mbhlcore et la table de suivi des migrations.
+# Crée le schema cible et la table de suivi des migrations.
+# La table schema_migrations reste TOUJOURS dans mbhlcore (partagée entre packages).
 # Appelé automatiquement par run_pending_migrations() avant toute autre opération.
-.bootstrap_schema <- function(con) {
-    DBI::dbExecute(con, "CREATE SCHEMA IF NOT EXISTS mbhlcore")
+.bootstrap_schema <- function(con, schema = "mbhlcore") {
+    DBI::dbExecute(
+        con,
+        paste0("CREATE SCHEMA IF NOT EXISTS ", DBI::dbQuoteIdentifier(con, schema))
+    )
     DBI::dbExecute(con, "
         CREATE TABLE IF NOT EXISTS mbhlcore.schema_migrations (
             migration_id  TEXT        PRIMARY KEY,

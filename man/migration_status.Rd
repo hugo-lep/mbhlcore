@@ -4,10 +4,13 @@
 \alias{migration_status}
 \title{Display migration status in the console}
 \usage{
-migration_status(con)
+migration_status(con, package = "mbhlcore")
 }
 \arguments{
 \item{con}{A DBI connection or pool object.}
+
+\item{package}{Name of the package whose migrations to display.
+Defaults to \code{"mbhlcore"}.}
 }
 \value{
 Invisibly returns the data.frame from \code{\link[=list_migrations]{list_migrations()}}.
