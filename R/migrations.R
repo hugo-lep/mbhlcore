@@ -30,7 +30,7 @@ run_pending_migrations <- function(con, package = "mbhlcore") {
         "SELECT migration_id FROM mbhlcore.schema_migrations ORDER BY migration_id"
     )$migration_id
 
-    pending_idx <- which(!migration_ids %in% applied)
+    pending_idx   <- which(!migration_ids %in% applied)
 
     if (length(pending_idx) == 0L) {
         cli::cli_inform(c("v" = "All migrations already applied."))
@@ -39,9 +39,12 @@ run_pending_migrations <- function(con, package = "mbhlcore") {
 
     cli::cli_inform("Applying {length(pending_idx)} pending migration{?s}...")
 
-    for (i in pending_idx) {
-        id   <- migration_ids[[i]]
-        file <- sql_files[[i]]
+    pending_files <- sql_files[pending_idx]
+    pending_ids   <- migration_ids[pending_idx]
+
+    for (j in seq_along(pending_files)) {
+        id   <- pending_ids[[j]]
+        file <- pending_files[[j]]
 
         tryCatch(
             DBI::dbWithTransaction(con, {
