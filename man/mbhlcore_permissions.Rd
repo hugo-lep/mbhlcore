@@ -9,5 +9,6 @@ mbhlcore_permissions
 \description{
 Exported list of all permissions defined by this package, with human-readable
 descriptions. Used by the admin interface to generate permission toggles
-dynamically.
+dynamically. This is the source of truth — add a permission here before
+using it anywhere in the code.
 }

@@ -1,0 +1,8 @@
+personnel_full_name,license_type,authority,license_number,expiry_years,expiry_months,is_active
+Éric Lapointe,ame,TC,M100001,3,0,TRUE
+Éric Lapointe,dangerous_goods,IATA,,1,0,TRUE
+Sophie Charron,ame,TC,M100002,2,0,TRUE
+Sophie Charron,dangerous_goods,IATA,,0,8,TRUE
+David Bouchard,ame,TC,M100003,0,-1,TRUE
+Isabelle Fortin,ame,TC,M100004,4,0,TRUE
+Jacques Arsenault,ame,TC,M999001,1,0,TRUE

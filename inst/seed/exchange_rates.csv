@@ -1,0 +1,5 @@
+currency_from,currency_to,rate,updated_by
+USD,CAD,1.36,demo_seed
+EUR,CAD,1.47,demo_seed
+CAD,USD,0.74,demo_seed
+CAD,EUR,0.68,demo_seed

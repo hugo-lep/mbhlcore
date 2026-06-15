@@ -1,0 +1,5 @@
+company_name,is_supplier,is_mro,is_consignment,is_lessor,country,is_active
+Demo Airline,FALSE,FALSE,FALSE,FALSE,CA,TRUE
+Harfang Parts Supply Ltd.,TRUE,FALSE,FALSE,FALSE,CA,TRUE
+Nordex Repair Inc.,FALSE,TRUE,FALSE,FALSE,CA,TRUE
+Consign-Air International,TRUE,FALSE,TRUE,FALSE,US,TRUE

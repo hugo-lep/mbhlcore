@@ -1,0 +1,10 @@
+type_name,description,is_active
+Engine,Moteurs et groupes propulseurs,TRUE
+Propeller,Hélices et ensembles d'hélice,TRUE
+Repairable Part,Pièces réparables (non capitalisées),TRUE
+Avionics,Équipements avioniques,TRUE
+Rotable,Pièces rotables (révisionables),TRUE
+Consumable,Consommables (fluides, filtres, hardware),TRUE
+Part,Pièces structurales et mécaniques courantes,TRUE
+Tool / GSE,Outillage capitalisé et équipements au sol (sérialisé),TRUE
+Tool,Outillage courant non capitalisé,TRUE

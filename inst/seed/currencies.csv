@@ -1,0 +1,4 @@
+currency_code,currency_name,is_base_currency
+CAD,Canadian Dollar,TRUE
+USD,US Dollar,FALSE
+EUR,Euro,FALSE

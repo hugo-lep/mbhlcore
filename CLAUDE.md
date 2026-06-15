@@ -577,18 +577,76 @@ PRIMARY KEY (group_id, catalog_id)
 | **roles** | protegR2 | `user` \| `admin` \| `super-admin` \| `dev` | Accès à l'application |
 | **permission_groups** | mbhlCore | `ame`, `lead_ame`, `apprenti_ame`... | Permissions fonctionnelles MBHL |
 
-### 7.2 Modèle de fusion au login
+### 7.2 Architecture décidée — répartition des responsabilités
+
+| Composant | Package | Description |
+|-----------|---------|-------------|
+| **Moteur** (`build_user_permissions`, `has_permission`, `assert_permission`) | `protegR2` | Résout les permissions au login, peuple `config_user` |
+| **Tables DB** (`permission_groups`, etc.) | `mbhlcore` | Données — groupes, items, assignations |
+| **Registre** (`mbhlcore_permissions`, `mbhlmaintenance_permissions`…) | Chaque package | Liste de toutes les permissions existantes dans ce package |
+
+> ⚠️ **Tâche en attente:** déplacer le moteur de `mbhlcore/R/permissions.R` vers `protegR2`.
+> Actuellement `build_user_permissions()`, `has_permission()`, `assert_permission()` sont dans mbhlcore — à migrer.
+
+### 7.3 Structure de `config_user`
+
+Format imbriqué: `config_user$<package>$<module>$<permission>`
+
+```r
+config_user$mbhlmaintenance$forecast$has_access     # TRUE ou NULL
+config_user$mbhlmaintenance$work_orders$can_close   # TRUE ou NULL
+config_user$mbhlmagasin$inventory$can_adjust        # TRUE ou NULL
+config_user$.role                                   # 'dev' | 'admin' | 'user' | ...
+```
+
+**NULL = accès refusé** (default deny). Ce qui n'est pas explicitement accordé est refusé.
+
+### 7.4 Rôle `dev` — bypass total
+
+`has_permission()` dans protegR2 court-circuite tout si `config_user$.role == "dev"`:
+
+```r
+has_permission <- function(config_user, package, module, permission) {
+    if (isTRUE(config_user$.role == "dev")) return(TRUE)
+    isTRUE(config_user[[package]][[module]][[permission]])
+}
+```
+
+**Pourquoi:** quand une nouvelle permission est ajoutée au registre, personne ne l'a encore.
+Le dev peut tester immédiatement sans configuration. Un admin régulier ne voit pas une
+permission non configurée — elle n'apparaît dans aucun menu tant qu'elle n'est pas assignée
+à au moins un groupe. Seul le rôle `dev` y a accès via le bypass.
+
+### 7.5 Registre des permissions (par package)
+
+Chaque package exporte la liste exhaustive de ses permissions. C'est la **source de vérité**:
+- Génère les toggles de l'UI admin dynamiquement
+- Garantit qu'aucune permission n'est oubliée lors du développement
+- Ajouter une permission = l'ajouter au registre en premier
+
+```r
+# mbhlmaintenance/R/permissions.R
+mbhlmaintenance_permissions <- list(
+    forecast = list(
+        has_access = "Voir le forecast"
+    ),
+    work_orders = list(
+        can_open   = "Ouvrir un W.O.",
+        can_close  = "Fermer un W.O.",
+        can_review = "Réviser un W.O."
+    )
+)
+```
+
+### 7.6 Modèle de fusion au login
 
 ```
-Permissions effectives = UNION(tous les permission_groups de l'utilisateur)
-                         + ajouts individuels (user_config)
-                         - révocations individuelles (user_config, si besoin)
+config_user = UNION(tous les permission_groups de l'utilisateur)
+            + overrides individuels (JSONB user_config)
 ```
 
-- Au login: calcul unique → stocké en mémoire de session
-- Code applicatif utilise `user_config$mbhlMaintenance$can_close_wo` sans savoir l'origine
-- `user_config` (JSONB) stocke **uniquement les overrides individuels**
-- Changement de groupe = recharge automatique au prochain login
+- Calcul unique au login → stocké en mémoire de session
+- Changement de groupe = recharge au prochain login
 - Les overrides individuels survivent à un changement de groupe
 
 ### 7.3 Tables dans `mbhlCore`

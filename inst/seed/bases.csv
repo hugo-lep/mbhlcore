@@ -1,0 +1,4 @@
+base_code,base_name,base_type,is_active
+YUL,Montréal-Trudeau,airport,TRUE
+YHU,Montréal-Saint-Hubert,maintenance_facility,TRUE
+YVO,Val-d'Or,airport,TRUE

@@ -1,0 +1,5 @@
+company_name,contact_name,department,email,phone,is_primary
+Demo Airline,Marc Beaulieu,Maintenance,m.beaulieu@demoairline.ca,,TRUE
+Harfang Parts Supply Ltd.,Sarah Chen,Parts Sales,s.chen@harfangparts.com,,TRUE
+Nordex Repair Inc.,Jean-Paul Tremblay,Customer Service,jp.tremblay@nordexrepair.com,,TRUE
+Consign-Air International,Tom Harrington,Consignment Ops,t.harrington@consignair.com,,TRUE
