@@ -4,13 +4,17 @@
 \alias{run_pending_migrations}
 \title{Apply all pending database migrations}
 \usage{
-run_pending_migrations(con, package = "mbhlcore")
+run_pending_migrations(con, package = "mbhlcore", migrations_path = NULL)
 }
 \arguments{
 \item{con}{A DBI connection or pool object pointing to the client database.}
 
 \item{package}{Name of the package whose \verb{inst/migrations/} to apply.
 Defaults to \code{"mbhlcore"}. Other MBHL packages pass their own name here.}
+
+\item{migrations_path}{Optional explicit path to the migrations directory.
+Useful in development (\code{devtools::load_all()}) where \code{system.file()} may
+not resolve correctly. When \code{NULL} (default), resolved via \code{system.file()}.}
 }
 \value{
 Invisibly returns the number of migrations applied.

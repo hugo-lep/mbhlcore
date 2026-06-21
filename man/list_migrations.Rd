@@ -4,13 +4,15 @@
 \alias{list_migrations}
 \title{List all migrations and their status}
 \usage{
-list_migrations(con, package = "mbhlcore")
+list_migrations(con, package = "mbhlcore", migrations_path = NULL)
 }
 \arguments{
 \item{con}{A DBI connection or pool object.}
 
 \item{package}{Name of the package whose \verb{inst/migrations/} to inspect.
 Defaults to \code{"mbhlcore"}.}
+
+\item{migrations_path}{Optional explicit path to the migrations directory.}
 }
 \value{
 A data.frame with columns \code{migration_id}, \code{status} ("applied" or

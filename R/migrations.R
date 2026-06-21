@@ -10,21 +10,31 @@
 #' This prevents collisions when multiple packages share the same
 #' `schema_migrations` table.
 #'
-#' @param con     A DBI connection or pool object pointing to the client database.
-#' @param package Name of the package whose `inst/migrations/` to apply.
+#' @param con             A DBI connection or pool object pointing to the client database.
+#' @param package         Name of the package whose `inst/migrations/` to apply.
 #'   Defaults to `"mbhlcore"`. Other MBHL packages pass their own name here.
+#' @param migrations_path Optional explicit path to the migrations directory.
+#'   Useful in development (`devtools::load_all()`) where `system.file()` may
+#'   not resolve correctly. When `NULL` (default), resolved via `system.file()`.
 #'
 #' @return Invisibly returns the number of migrations applied.
 #' @importFrom tools file_path_sans_ext
 #' @export
-run_pending_migrations <- function(con, package = "mbhlcore") {
+run_pending_migrations <- function(con, package = "mbhlcore",
+                                   migrations_path = NULL) {
     .bootstrap_schema(con, schema = package)
 
-    migration_dir <- system.file("migrations", package = package)
-    if (!nzchar(migration_dir)) {
+    migration_dir <- if (!is.null(migrations_path)) {
+        migrations_path
+    } else {
+        system.file("migrations", package = package)
+    }
+
+    if (!nzchar(migration_dir) || !dir.exists(migration_dir)) {
         cli::cli_abort(c(
             "Impossible de trouver les migrations du package {.pkg {package}}.",
-            "i" = "Le package est-il installé ? Lance {.code renv::install()} si nécessaire."
+            "i" = "Le package est-il installé ? Lance {.code renv::install()} si nécessaire.",
+            "i" = "En développement, utilise {.code run_migrations(con)} depuis le package lui-même."
         ))
     }
     sql_files     <- sort(list.files(migration_dir, pattern = "\\.sql$", full.names = TRUE))
@@ -85,16 +95,21 @@ run_pending_migrations <- function(con, package = "mbhlcore") {
 
 #' List all migrations and their status
 #'
-#' @param con     A DBI connection or pool object.
-#' @param package Name of the package whose `inst/migrations/` to inspect.
+#' @param con             A DBI connection or pool object.
+#' @param package         Name of the package whose `inst/migrations/` to inspect.
 #'   Defaults to `"mbhlcore"`.
+#' @param migrations_path Optional explicit path to the migrations directory.
 #'
 #' @return A data.frame with columns `migration_id`, `status` ("applied" or
 #'   "pending"), and `applied_at` (NA if pending).
 #' @export
-list_migrations <- function(con, package = "mbhlcore") {
-    migration_dir <- system.file("migrations", package = package)
-    if (!nzchar(migration_dir)) {
+list_migrations <- function(con, package = "mbhlcore", migrations_path = NULL) {
+    migration_dir <- if (!is.null(migrations_path)) {
+        migrations_path
+    } else {
+        system.file("migrations", package = package)
+    }
+    if (!nzchar(migration_dir) || !dir.exists(migration_dir)) {
         cli::cli_abort(c(
             "Impossible de trouver les migrations du package {.pkg {package}}.",
             "i" = "Le package est-il installé ? Lance {.code renv::install()} si nécessaire."
@@ -128,14 +143,15 @@ list_migrations <- function(con, package = "mbhlcore") {
 
 #' Display migration status in the console
 #'
-#' @param con     A DBI connection or pool object.
-#' @param package Name of the package whose migrations to display.
+#' @param con             A DBI connection or pool object.
+#' @param package         Name of the package whose migrations to display.
 #'   Defaults to `"mbhlcore"`.
+#' @param migrations_path Optional explicit path to the migrations directory.
 #'
 #' @return Invisibly returns the data.frame from [list_migrations()].
 #' @export
-migration_status <- function(con, package = "mbhlcore") {
-    df <- list_migrations(con, package = package)
+migration_status <- function(con, package = "mbhlcore", migrations_path = NULL) {
+    df <- list_migrations(con, package = package, migrations_path = migrations_path)
 
     n_applied <- sum(df$status == "applied")
     n_pending <- sum(df$status == "pending")
